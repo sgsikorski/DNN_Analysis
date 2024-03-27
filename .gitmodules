@@ -1,0 +1,6 @@
+[submodule "alpha-beta-CROWN"]
+	path = alpha-beta-CROWN
+	url = https://github.com/Verified-Intelligence/alpha-beta-CROWN.git
+[submodule "neuralsat"]
+	path = neuralsat
+	url = https://github.com/dynaroars/neuralsat.git
