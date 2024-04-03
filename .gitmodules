@@ -4,3 +4,6 @@
 [submodule "neuralsat"]
 	path = neuralsat
 	url = https://github.com/dynaroars/neuralsat.git
+[submodule "vnncomp2021"]
+	path = vnncomp2021
+	url = https://github.com/stanleybak/vnncomp2021.git
