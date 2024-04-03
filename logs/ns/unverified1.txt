@@ -1,0 +1,34 @@
+Restricted license - for non-production use only - expires 2025-11-24
+ConvertModel(
+  (Conv_11): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (Relu_12): ReLU(inplace=True)
+  (Conv_13): Conv2d(32, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+  (Relu_14): ReLU(inplace=True)
+  (Conv_15): Conv2d(32, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+  (Relu_16): ReLU(inplace=True)
+  (Flatten_17): Flatten()
+  (Gemm_18): Linear(in_features=8192, out_features=250, bias=True)
+  (Relu_19): ReLU(inplace=True)
+  (Gemm_20): Linear(in_features=250, out_features=10, bias=True)
+)
+INFO     22:17:10     [!] VNNLIB: 3072 inputs, 10 outputs
+INFO     22:17:10     [!] Input shape: (1, 3, 32, 32) (is_nhwc=False)
+INFO     22:17:10     [!] Output shape: (1, 10)
+
+[!] Current settings:
+	- max_hidden_branches           : 5000
+	- max_hidden_visited_branches   : 20000
+	- use_attack                    : True
+	- use_restart                   : True
+	- use_stabilize                 : True
+
+
+INFO     22:17:10     [Failed] RandomAttack(seed=635, device=cuda)
+INFO     22:17:11     [Success] PGDAttack(seed=353, device=cuda)
+INFO     22:17:11     [!] Iterations: 0
+INFO     22:17:11     adv (first 5): tensor([0.5319, 0.5175, 0.5009, 0.4938, 0.5096], dtype=torch.float64)
+DEBUG    22:17:11     output: tensor([ 2.5861, -3.0276,  1.9108,  1.2647,  1.7225,  0.7602, -0.2465, -1.7295,
+         1.9734, -2.7588], dtype=torch.float64)
+INFO     22:17:11     [!] Result: sat
+INFO     22:17:11     [!] Runtime: 1.8870
+sat,1.8870
