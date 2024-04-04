@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Generate MNIST Properties",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "generateProperties.py",
+            "console": "integratedTerminal",
+            "args": "-o vnncomp2021/benchmarks/mnistfc/mnist-net_256x2.onnx -s props/mnist_instances.csv -ic 50 -ec 10"
+        }
+    ]
+}
