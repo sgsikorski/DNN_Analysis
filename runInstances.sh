@@ -20,8 +20,7 @@ conda activate ab_crown
 # Run ab-crown
 for i in `seq 1 ${#spec[@]}`
 do
-    # TODO: Change this config file to Onnx & vnnlib produced
-    python abcrown.py --config exp_configs/cifar_resnet_2b.yaml
+    python abcrown.py --config configs/mnist.yaml
 done
 
 conda deactivate

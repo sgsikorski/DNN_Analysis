@@ -92,16 +92,16 @@ def saveVnnlib(input_bounds: torch.Tensor, label: int, spec_path: str, total_out
                 f.write(f"    (and (>= Y_{i} Y_{label}))\n")
         f.write("))")
 
-def createInstanceCSV(iCount, epss, onnxModel, csvPath):
+def createInstanceCSV(iCount, epss, onnxModel, csvPath, timeout=120):
     props = []
     for eps in epss:
         props += [f"props/prop_{i}_{eps:.8f}.vnnlib" for i in range(iCount)]
     with open(csvPath, "w") as f:
         for prop in props:
             if prop == props[-1]:
-                f.write(f"{onnxModel},{prop}")
+                f.write(f"{onnxModel},{prop},{timeout}")
             else:
-                f.write(f"{onnxModel},{prop}\n")
+                f.write(f"{onnxModel},{prop},{timeout}\n")
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()

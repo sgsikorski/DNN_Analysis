@@ -1,0 +1,14 @@
+general:
+  root_path: ../vnncomp2021/benchmarks/mnistfc
+  csv_name: ../props/mnist_instances.csv
+data:
+  start: 0
+  end: 20
+solver:
+  batch_size: 200
+  beta-crown:
+    lr_beta: 0.01
+bab:
+  branching:
+    reduceop: max
+    candidates: 10
