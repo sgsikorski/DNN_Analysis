@@ -1,7 +1,7 @@
 general:
   device: cpu
-  root_path: ../../props/mnist
-  csv_name: mnist_instances.csv
+  root_path: ../../props/cifar
+  csv_name: cifar_instances.csv
 data:
   start: 0
 solver:

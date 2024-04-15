@@ -21,43 +21,28 @@ def getPthAsOnnx(fModel, fOnnx, inputSize):
     storeModelAsOnnx(fModel, fOnnx, inputSize)
     return getModelFromOnnx(fOnnx)
 
-def loadData(iCount, onnxFile, data_dir: str = "./tmp"):
+def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
 
     trns_norm = trans.ToTensor()
-    mnist_test = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=trns_norm)
 
-    loader_test = DataLoader(mnist_test, batch_size=10000)
+    data = None
+    if dataset == 'MNIST':
+        data = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=trns_norm)
+    elif dataset == 'CIFAR':
+        data = torchvision.datasets.CIFAR10(data_dir, train=False, download=True, transform=trns_norm)
+    else:
+        raise RuntimeError("Dataset provided is not implemented.")
 
-    images, labels = next(iter(loader_test))
+    loader_test = DataLoader(data, batch_size=10000)
 
-    num_selected = 0
-    selected_images, selected_labels = [], []
+    return next(iter(loader_test))
 
-    sess = onnxrun.InferenceSession(onnxFile)
-
-    i = -1
-    while num_selected < iCount:
-        i += 1
-        correctly_classified = True
-        input_name = sess.get_inputs()[0].name
-        result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
-        if result != labels[i]:
-            correctly_classified = False
-            break
-        if not correctly_classified:
-            continue
-        num_selected += 1
-        selected_images.append(images[i])
-        selected_labels.append(labels[i])
-
-    return selected_images, selected_labels
-
-def perturbInstance(instance, eps):
+def perturbInstance(instance, eps, mean, std):
     bounds = torch.zeros((*instance.shape, 2), dtype=torch.float32)
-    bounds[..., 0] = torch.clip((instance - eps), 0, 1)
-    bounds[..., 1] = torch.clip((instance + eps), 0, 1)
+    bounds[..., 0] = (torch.clip((instance - eps), 0, 1) - mean) / std
+    bounds[..., 1] = (torch.clip((instance + eps), 0, 1) - mean) / std
     return bounds.view(-1, 2)
 
 def saveVnnlib(input_bounds: torch.Tensor, label: int, spec_path: str, total_output_class: int = 10):
@@ -95,7 +80,7 @@ def saveVnnlib(input_bounds: torch.Tensor, label: int, spec_path: str, total_out
 def createInstanceCSV(iCount, epss, onnxModel, csvPath, timeout=120):
     props = []
     for eps in epss:
-        props += [f"props/prop_{i}_{eps:.8f}.vnnlib" for i in range(iCount)]
+        props += [f"prop_{i}_{eps:.8f}.vnnlib" for i in range(iCount)]
     with open(csvPath, "w") as f:
         for prop in props:
             if prop == props[-1]:
@@ -105,10 +90,11 @@ def createInstanceCSV(iCount, epss, onnxModel, csvPath, timeout=120):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument("-ic", "--instanceCount", type=int, default=50)
-    ap.add_argument("-o", "--onnxFile", type=str, required=True)
-    ap.add_argument("-s", "--specFile", type=str)
-    ap.add_argument("-ec", "--epsilonCount", type=int, default=10, help="Number of epislon to sweep over")
+    ap.add_argument("-ic", "--instanceCount", type=int, default=50, help="Number of instances to generate properties for")
+    ap.add_argument("-o", "--onnxFile", type=str, required=True, help="Path to model onnx file")
+    ap.add_argument("-s", "--specFile", type=str, default="props/instances.csv", help="Path to CSV file to store the instance specifications")
+    ap.add_argument("-d", "--dataset", type=str, required=True, help="Dataset to use to generate properties")
+    ap.add_argument("-ec", "--epsilonCount", type=int, default=10, help="Number of epsilon to sweep over")
     args = ap.parse_args()
 
     # 0 -> 0.01: Sweeping epsilon
@@ -118,15 +104,21 @@ if __name__ == '__main__':
     instanceCount = args.instanceCount
 
     onnxFile = args.onnxFile
-    specFile = args.specFile if args.specFile is not None else "props/mnist_instances.csv"
+    specFile = args.specFile
+    dataset = args.dataset.upper()
+    imgMean = 0
+    imgStd = 1
+    if dataset == 'CIFAR':
+        imgMean = torch.tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
+        imgStd = torch.tensor((0.2471, 0.2435, 0.2616)).view(-1, 1, 1)
 
-    images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile)
+    images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile, dataset=dataset)
     for eps in epss:
         for i in range(instanceCount):
             image, label = images[i], labels[i]
-            inputBounds = perturbInstance(image, eps)
+            inputBounds = perturbInstance(image, eps, imgMean, imgStd)
 
-            specPath = f"props/prop_{i}_{eps:.8f}.vnnlib"
+            specPath = f"props/{dataset.lower()}/prop_{i}_{eps:.8f}.vnnlib"
             saveVnnlib(inputBounds, label, specPath)
-    createInstanceCSV(instanceCount, epss, onnxFile, specFile)
+    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile)
 
