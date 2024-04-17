@@ -1,27 +1,31 @@
-cd neuralsat
-cd neuralsat-pt201
-#conda deactivate
-#conda activate neuralsat
+# this script runs NeuralSAT on the cifar model and saves the results to neuralsat_output.txt
+# run this before executing the script: conda activate neuralsat
 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_0_eps_0.00784_n1.vnnlib
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_1_eps_0.00784_n1.vnnlib
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_2_eps_0.00784_n1.vnnlib
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_3_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_4_eps_0.00784_n1.vnnlib
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_5_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_6_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_8_eps_0.00784_n1.vnnlib
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_9_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_10_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_11_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_12_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_13_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_14_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_15_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_16_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_17_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_18_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_19_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_20_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_21_eps_0.00784_n1.vnnlib 
-python3 main.py --net ../neuralbench/instances/cifar2020/nnet/cifar10_2_255_simplified.onnx --spec ../neuralbench/instances/cifar2020/spec/cifar10_spec_idx_23_eps_0.00784_n1.vnnlib 
+# generate vnnlib files for model and dataset
+python3 generateProperties.py --instanceCount 10 --onnxFile props/cifar/resnet_2b.onnx --specFile props/cifar/cifar_instances.csv --dataset CIFAR --epsilonCount 10
+
+# run neuralsat on all instances
+
+input_file="props/cifar/cifar_instances.csv"
+
+output_file="neuralsat_output.txt"
+> "$output_file"
+
+while IFS=',' read -r col1 col2 col3 _ || [ -n "$col1" ]; do
+    network="$col1"
+    property="$col2"
+    timeout="$col3"
+
+    echo "Running $property..."
+
+    python3 neuralsat/neuralsat-pt201/main.py --net props/cifar/$network --spec props/cifar/$property --timeout $timeout > temp_output.txt
+
+    # Get the result (last line of the output) and write to output file
+    result=$(tail -n 1 temp_output.txt)
+
+    echo "$network,$property,$result" >> $output_file
+
+    rm temp_output.txt
+
+done < "$input_file"
+
