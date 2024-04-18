@@ -1,21 +1,24 @@
 import matplotlib.pyplot as plt
 import argparse
 import numpy as np
+import os
 
 # Plot the number of verified/unverified and time for verification at each epsilon value
 def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list):
-    fig, ax = plt.subplots(1, 2)
-    ax[0].plot(epss, num_verified, label='Verified')
-    ax[0].plot(epss, num_unverified, label='Unverified')
-    ax[1].plot(epss, verifiedTime)
+    fig, ax = plt.subplots(figsize=(15,5))
+    axx = ax.twinx()
+    ax.plot(epss, num_verified, label='Verified')
+    ax.plot(epss, num_unverified, label='Unverified')
+    axx.plot(epss, verifiedTime, label='Time', color='k')
 
-    ax[0].set_xlabel('$\epsilon$')
-    ax[1].set_xlabel('$\epsilon$')
-    ax[0].set_ylabel('Number of Instances')
-    ax[1].set_ylabel('Time (s)')
+    ax.set_xlabel('$\epsilon$')
+    ax.set_xlabel('$\epsilon$')
+    ax.set_ylabel('Number of Instances (per $\epsilon$)')
+    axx.set_ylabel('Time (s)')
 
-    ax[0].legend()
-    plt.savefig('results/sweeping_eps.png')
+    plt.legend()
+    plt.xticks(np.arange(0, 0.02, .002))
+    plt.savefig(f'results/sweeping_eps_{num_unverified[0]+num_verified[0]}.png')
     # plt.show()
 
 def parseInstanceCsv(file):
@@ -29,6 +32,8 @@ def parseInstanceCsv(file):
 def parseABcrownLog(file):
     insts = []
     times = []
+    #for file in os.listdir(dir):
+    #    with open(os.path.join(dir, file)) as f:
     with open(file) as f:
         for line in f.readlines():
             if 'Result' in line:
@@ -89,8 +94,8 @@ if __name__=='__main__':
         data = parseABcrownLog(args.log)
         #print("INSTANCES")
         #print(insts)
-
-        epss = [(e.split('_')[2])[:-7] for i, e in enumerate(insts) if i % 10 ==0]
+        epss = (np.linspace(0, .02, num=10))+(.01/255)
+        # epss = [(e.split('_')[2])[:-7] for i, e in enumerate(insts) if i % 10 ==0]
         #print(epss)
         #print("DATA")
         #print(data)
