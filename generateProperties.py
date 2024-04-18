@@ -101,6 +101,7 @@ if __name__ == '__main__':
     epss = []
     for i in range(args.epsilonCount):
         epss.append(i/255 + .01/255)
+    epss = np.arange(0, .02, args.epsilonCount)
     instanceCount = args.instanceCount
 
     onnxFile = args.onnxFile
