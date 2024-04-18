@@ -47,7 +47,7 @@ def perturbInstance(instance, eps, mean, std):
 
 def saveVnnlib(input_bounds: torch.Tensor, label: int, spec_path: str, total_output_class: int = 10):
     with open(spec_path, "w") as f:
-        f.write(f"; Mnist property with label: {label}.\n")
+        f.write(f"; Property with label: {label}.\n")
 
         # Declare input variables.
         f.write("\n")
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # 0 -> 0.01: Sweeping epsilon
     epss = []
     for i in range(args.epsilonCount):
-        epss.append((i/5)/255 + .01/255)
+        epss.append(i/255 + .01/255)
     instanceCount = args.instanceCount
 
     onnxFile = args.onnxFile

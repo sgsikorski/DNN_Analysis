@@ -1,11 +1,10 @@
 general:
-  device: cpu
   root_path: ../../props/cifar
   csv_name: cifar_instances.csv
 data:
   start: 0
 solver:
-  batch_size: 4096
+  batch_size: 1024
   beta-crown:
     iteration: 20
     lr_beta: 0.03
