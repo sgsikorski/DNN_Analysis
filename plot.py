@@ -5,7 +5,7 @@ import os
 
 # Plot the number of verified/unverified and time for verification at each epsilon value
 def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier):
-    fig, ax = plt.subplots(figsize=(15,5))
+    fig, ax = plt.subplots(figsize=(10,5))
     axx = ax.twinx()
     ax.plot(epss, num_verified, label='Verified')
     ax.plot(epss, num_unverified, label='Unverified')
@@ -18,6 +18,7 @@ def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifi
 
     ax.legend()
     axx.legend()
+    plt.title('Sweeping $\epsilon$ for CIFAR')
     plt.xticks(np.arange(0, 0.025, .002))
     plt.savefig(f'results/sweeping_eps_{num_unverified[0]+num_verified[0]}_{verifier}.png')
     # plt.show()
