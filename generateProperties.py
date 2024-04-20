@@ -98,10 +98,10 @@ if __name__ == '__main__':
     args = ap.parse_args()
 
     # 0 -> 0.01: Sweeping epsilon
-    epss = []
-    for i in range(args.epsilonCount):
-        epss.append(i/255 + .01/255)
-    epss = np.arange(0, .02, args.epsilonCount)
+    #epss = []
+    #for i in range(args.epsilonCount):
+    #    epss.append(i/255 + .01/255)
+    epss = np.linspace(0, .025, args.epsilonCount) + (.01/255)
     instanceCount = args.instanceCount
 
     onnxFile = args.onnxFile
@@ -116,10 +116,13 @@ if __name__ == '__main__':
     images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile, dataset=dataset)
     for eps in epss:
         for i in range(instanceCount):
+            # Remove bad images
+            if i == 0 or i == 7 or i == 8:
+                continue
             image, label = images[i], labels[i]
             inputBounds = perturbInstance(image, eps, imgMean, imgStd)
 
             specPath = f"props/{dataset.lower()}/prop_{i}_{eps:.8f}.vnnlib"
             saveVnnlib(inputBounds, label, specPath)
-    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile)
+    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile, 240)
 

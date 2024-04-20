@@ -16,23 +16,23 @@ optional arguments:
 
   -ic INSTANCECOUNT, --instanceCount INSTANCECOUNT
 
-                        Number of instances to generate properties for
+  Number of instances to generate properties for
   
   -o ONNXFILE, --onnxFile ONNXFILE
   
-                        Path to model onnx file
+  Path to model onnx file
   
   -s SPECFILE, --specFile SPECFILE
   
-                        Path to CSV file to store the instance specifications
+  Path to CSV file to store the instance specifications
   
   -d DATASET, --dataset DATASET
   
-                        Dataset to use to generate properties
+  Dataset to use to generate properties
   
   -ec EPSILONCOUNT, --epsilonCount EPSILONCOUNT
   
-                        Number of epsilon to sweep over
+  Number of epsilon to sweep over
 
 
 Once the cooresponding .vnnlib files and .csv file is made, these can be given to the verifier
