@@ -37,7 +37,33 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
 
     loader_test = DataLoader(data, batch_size=10000)
 
-    return next(iter(loader_test))
+    images, labels = next(iter(loader_test))
+
+    num_selected = 0
+    selected_images, selected_labels = [], []
+
+    sess = onnxrun.InferenceSession(onnxFile)
+
+    i = -1
+    while num_selected < iCount:
+        i += 1
+        correctly_classified = True
+        input_name = sess.get_inputs()[0].name
+        # TODO: Change how input is reshaped depending on benchmark
+        if dataset == 'MNIST':
+            if 'eran' in onnxFile:
+                result = np.argmax(sess.run(None, {input_name: images[i].unsqueeze(0).numpy().astype(np.float32)})[0])
+            else:
+                result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
+        elif dataset == 'CIFAR':
+            result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
+        if result != labels[i]:
+            continue
+        num_selected += 1
+        selected_images.append(images[i])
+        selected_labels.append(labels[i])
+
+    return selected_images, selected_labels
 
 def perturbInstance(instance, eps, mean, std):
     bounds = torch.zeros((*instance.shape, 2), dtype=torch.float32)
@@ -116,9 +142,6 @@ if __name__ == '__main__':
     images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile, dataset=dataset)
     for eps in epss:
         for i in range(instanceCount):
-            # Remove bad images
-            if i == 0 or i == 7 or i == 8:
-                continue
             image, label = images[i], labels[i]
             inputBounds = perturbInstance(image, eps, imgMean, imgStd)
 
