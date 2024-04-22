@@ -3,6 +3,9 @@ import argparse
 import numpy as np
 import os
 
+NUM_INSTANCES = 10
+BENCHMARK = "eran"
+
 # Plot the number of verified/unverified and time for verification at each epsilon value
 def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier):
     fig, ax = plt.subplots(figsize=(10,5))
@@ -18,9 +21,9 @@ def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifi
 
     ax.legend()
     axx.legend()
-    plt.title('Sweeping $\epsilon$ for CIFAR')
+    plt.title(f'Sweeping $\epsilon$ for {BENCHMARK.capitalize()} (MNIST)')
     plt.xticks(np.arange(0, 0.025, .002))
-    plt.savefig(f'results/sweeping_eps_{num_unverified[0]+num_verified[0]}_{verifier}.png')
+    plt.savefig(f'results/sweeping_eps_{BENCHMARK}_{NUM_INSTANCES}_{verifier}.png')
     # plt.show()
 
 def parseInstanceCsv(file):
@@ -44,11 +47,11 @@ def parseABcrownLog(file):
                     insts.append(1)
                 elif 'unknown' in line:
                     insts.append(0)
-    num_verified = [sum(insts[i:i+47]) for i in range(0, len(insts), 47)]
-    num_unverified = [(47-sum(insts[i:i+47])) for i in range(0, len(insts), 47)]
+    num_verified = [sum(insts[i:i+NUM_INSTANCES]) for i in range(0, len(insts), NUM_INSTANCES)]
+    num_unverified = [(NUM_INSTANCES-sum(insts[i:i+NUM_INSTANCES])) for i in range(0, len(insts), NUM_INSTANCES)]
 
     ts = [float(times[i]) for i in range(len(times))]
-    timeseg = [ts[i:i+47] for i in range(0, len(ts), 47)]
+    timeseg = [ts[i:i+NUM_INSTANCES] for i in range(0, len(ts), NUM_INSTANCES)]
 
     times = []
     for s in timeseg:
@@ -102,7 +105,7 @@ if __name__=='__main__':
 
     if args.verifier == 'abc':
         insts = parseInstanceCsv(args.instances)
-        epss = [float((e.split('_')[2])[:-7]) for i, e in enumerate(insts) if i % 47 ==0]
+        epss = [float((e.split('_')[2])[:-7]) for i, e in enumerate(insts) if i % NUM_INSTANCES ==0]
         num_verified, num_unverified, times = parseABcrownLog(args.log)
         
         plotSweepingEPS(epss, num_verified, num_unverified, times, args.verifier)
