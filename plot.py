@@ -66,10 +66,12 @@ def parseNeuralSATlog(file):
             eps = result[1].split('_')[2][:-7]
             if eps not in data:
                 data[eps] = [0, 0, []]
-            if result[2] == 'sat' or result[2] == 'timeout': # unverified
-                data[eps][0] += 1
             if result[2] == 'unsat': # verified
                 data[eps][1] += 1
+            else: # unverified 
+            # if result[2] == 'sat' or result[2] == 'timeout': # unverified
+                data[eps][0] += 1
+            
             data[eps][2].append(result[3].replace("\n", ''))
     
     sorted_data = dict(sorted(data.items()))
