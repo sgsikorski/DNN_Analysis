@@ -1,5 +1,7 @@
-# this script runs NeuralSAT on the cifar model and saves the results to neuralsat_output.txt
-# run this before executing the script: conda activate neuralsat
+# this script runs NeuralSAT on the CIFAR dataset on resnet2b network and saves the results to ns_cifar_resnet2b_output.txt
+
+# NOTE: run this before executing the script: conda activate neuralsat
+# NOTE: run this from root directory
 
 # remove existing vnnlib files
 rm props/cifar/*.vnnlib
@@ -7,13 +9,13 @@ rm props/cifar/*.vnnlib
 echo "Generating properties..."
 
 # generate vnnlib files for model and dataset
-python3 generateProperties.py --instanceCount 10 --onnxFile props/cifar/resnet_2b.onnx --specFile props/cifar/cifar_instances.csv --dataset CIFAR --epsilonCount 10
+python3 generateProperties.py --instanceCount 5 --onnxFile props/cifar/resnet_2b.onnx --specFile props/cifar/cifar_instances.csv --dataset CIFAR --epsilonCount 10 --startEpsilon 0.0 --endEpsilon 0.02
 
 # run neuralsat on all instances
 
 input_file="props/cifar/cifar_instances.csv"
 
-output_file="logs/ns/cifar_ns_output.txt"
+output_file="logs/ns/ns_cifar_resnet2b_output.txt"
 > "$output_file"
 
 while IFS=',' read -r col1 col2 col3 _ || [ -n "$col1" ]; do

@@ -121,13 +121,15 @@ if __name__ == '__main__':
     ap.add_argument("-s", "--specFile", type=str, default="props/instances.csv", help="Path to CSV file to store the instance specifications")
     ap.add_argument("-d", "--dataset", type=str, required=True, help="Dataset to use to generate properties")
     ap.add_argument("-ec", "--epsilonCount", type=int, default=10, help="Number of epsilon to sweep over")
+    ap.add_argument("-se", "--startEpsilon", type=float, default=0.0, help="Starting epsilon")
+    ap.add_argument("-ee", "--endEpsilon", type=float, default=0.04, help="Ending epsilon")
     args = ap.parse_args()
 
     # 0 -> 0.01: Sweeping epsilon
     #epss = []
     #for i in range(args.epsilonCount):
     #    epss.append(i/255 + .01/255)
-    epss = np.linspace(0, .025, args.epsilonCount) + (.01/255)
+    epss = np.linspace(args.startEpsilon, args.endEpsilon, args.epsilonCount) + (.01/255)
     instanceCount = args.instanceCount
 
     onnxFile = args.onnxFile
