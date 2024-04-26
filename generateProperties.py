@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as trans
 import numpy as np
 import onnxruntime as onnxrun
+from PIL import Image
+import csv
 
 import argparse
 import os
@@ -21,6 +23,50 @@ def getPthAsOnnx(fModel, fOnnx, inputSize):
     storeModelAsOnnx(fModel, fOnnx, inputSize)
     return getModelFromOnnx(fOnnx)
 
+def read_csv(file_path):
+    first_column = []
+    second_column = []
+
+    with open(file_path, 'r') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        next(csv_reader)  # Skip the first row
+
+        for row in csv_reader:
+            if len(row) >= 2:
+                first_column.append(row[6])
+                second_column.append(row[7])
+
+    return np.array(first_column).astype(int), np.array(second_column)
+
+def loadGTSRBdata(iCount, onnxFile):
+    y_test, imgs = read_csv('GTSRB_dataset/Test.csv')
+
+    data = []
+    for img in imgs:
+        image = Image.open('GTSRB_dataset/' + img)
+        image = image.resize((30, 30))
+        data.append(np.array(image))
+    X_test = np.array(data).astype(np.float32)
+
+    num_selected = 0
+    selected_images, selected_labels = [], []
+    sess = onnxrun.InferenceSession(onnxFile)
+
+    i = -1
+    while num_selected < iCount:
+        i += 1
+        input_name = sess.get_inputs()[0].name
+        x = X_test[i]
+        result = np.argmax(sess.run(None, {input_name: (X_test[i])[np.newaxis, ...]})[0], axis=-1)
+
+        if result != y_test[i]:
+            continue
+        num_selected += 1
+        selected_images.append(x)
+        selected_labels.append(y_test[i])
+    
+    return torch.tensor(selected_images), torch.tensor(selected_labels)
+
 def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
@@ -28,7 +74,7 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     trns_norm = trans.ToTensor()
 
     data = None
-    if dataset == 'MNIST':
+    if dataset == 'MNIST' or dataset == 'ERAN':
         data = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=trns_norm)
     elif dataset == 'CIFAR':
         data = torchvision.datasets.CIFAR10(data_dir, train=False, download=True, transform=trns_norm)
@@ -47,16 +93,13 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     i = -1
     while num_selected < iCount:
         i += 1
-        correctly_classified = True
         input_name = sess.get_inputs()[0].name
-        # TODO: Change how input is reshaped depending on benchmark
         if dataset == 'MNIST':
-            if 'eran' in onnxFile:
-                result = np.argmax(sess.run(None, {input_name: images[i].unsqueeze(0).numpy().astype(np.float32)})[0])
-            else:
-                result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
-        elif dataset == 'CIFAR':
             result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
+        elif dataset == 'CIFAR':
+            result = np.argmax(sess.run(None, {input_name: images[i].unsqueeze(0).numpy()})[0])
+        elif dataset == 'ERAN':
+            result = np.argmax(sess.run(None, {input_name: images[i].unsqueeze(0).numpy().astype(np.float32)})[0])
         if result != labels[i]:
             continue
         num_selected += 1
@@ -69,6 +112,12 @@ def perturbInstance(instance, eps, mean, std):
     bounds = torch.zeros((*instance.shape, 2), dtype=torch.float32)
     bounds[..., 0] = (torch.clip((instance - eps), 0, 1) - mean) / std
     bounds[..., 1] = (torch.clip((instance + eps), 0, 1) - mean) / std
+    return bounds.view(-1, 2)
+
+def perturbGTSRBinstance(instance, eps, mean, std):
+    bounds = torch.zeros((*instance.shape, 2), dtype=torch.float32)
+    bounds[..., 0] = (torch.clip((instance - (eps*255)), 0, 255) - mean) / std
+    bounds[..., 1] = (torch.clip((instance + (eps*255)), 0, 255) - mean) / std
     return bounds.view(-1, 2)
 
 def saveVnnlib(input_bounds: torch.Tensor, label: int, spec_path: str, total_output_class: int = 10):
@@ -140,14 +189,23 @@ if __name__ == '__main__':
     if dataset == 'CIFAR':
         imgMean = torch.tensor((0.4914, 0.4822, 0.4465)).view(-1, 1, 1)
         imgStd = torch.tensor((0.2471, 0.2435, 0.2616)).view(-1, 1, 1)
+    elif dataset == 'GTSRB':
+        imgMean = np.array(0.0).reshape((1, -1, 1, 1)).astype(np.float32)
+        imgStd = np.array(1.0).reshape((1, -1, 1, 1)).astype(np.float32)
 
-    images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile, dataset=dataset)
+    if dataset != 'GTSRB':
+        images, labels = loadData(iCount=instanceCount, onnxFile=onnxFile, dataset=dataset)
+    else:
+        images, labels = loadGTSRBdata(iCount=instanceCount, onnxFile=onnxFile)
     for eps in epss:
         for i in range(instanceCount):
             image, label = images[i], labels[i]
-            inputBounds = perturbInstance(image, eps, imgMean, imgStd)
-
             specPath = f"props/{dataset.lower()}/prop_{i}_{eps:.8f}.vnnlib"
-            saveVnnlib(inputBounds, label, specPath)
-    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile, 240)
+            if dataset == 'GTSRB':
+                inputBounds = perturbGTSRBinstance(image, eps, imgMean, imgStd)
+            else:
+                inputBounds = perturbInstance(image, eps, imgMean, imgStd)
+
+            saveVnnlib(inputBounds, label, specPath, 43 if dataset == 'GTSRB' else 10)
+    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile)
 

@@ -3,8 +3,8 @@ import argparse
 import numpy as np
 import os
 
-NUM_INSTANCES = 50
-BENCHMARK = "cifar"
+NUM_INSTANCES = 10
+BENCHMARK = "GTSRB"
 
 # Plot the number of verified/unverified and time for verification at each epsilon value
 def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier):
