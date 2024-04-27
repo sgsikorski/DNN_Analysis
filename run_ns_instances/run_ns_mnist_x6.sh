@@ -1,7 +1,9 @@
 # this script runs NeuralSAT on the MNIST dataset on 256x6 network and saves the results to ns_mnist_256x6_output.txt
 
-# NOTE: run this before executing the script: conda activate neuralsat
+# NOTE: BEFORE running: run 'module load gurobi-11.0.0'
+# NOTE: BEFORE running: run 'conda activate neuralsat'
 # NOTE: run this from root directory
+
 
 # remove existing vnnlib files
 rm props/mnist/*.vnnlib
@@ -9,7 +11,7 @@ rm props/mnist/*.vnnlib
 echo "Generating properties..."
 
 # generate vnnlib files for model and dataset
-python3 generateProperties.py --instanceCount 10 --onnxFile props/mnist/mnist-net_256x6.onnx --specFile props/mnist/mnist_instances.csv --dataset MNIST --epsilonCount 10 -se 0.0 --ee 0.02
+python3 generateProperties.py -ic 10 -o props/mnist/mnist-net_256x6.onnx -s props/mnist/mnist_instances.csv -d MNIST -ec 10 -se 0.0 -ee 0.05
 
 # run neuralsat on all instances
 
