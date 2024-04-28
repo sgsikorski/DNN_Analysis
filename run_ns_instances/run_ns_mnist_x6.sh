@@ -6,19 +6,19 @@
 
 
 # remove existing vnnlib files
-rm props/mnist/*.vnnlib
+# rm props/mnist/*.vnnlib
 
-echo "Generating properties..."
+# echo "Generating properties..."
 
-# generate vnnlib files for model and dataset
-python3 generateProperties.py -ic 10 -o props/mnist/mnist-net_256x6.onnx -s props/mnist/mnist_instances.csv -d MNIST -ec 10 -se 0.0 -ee 0.05
+# # generate vnnlib files for model and dataset
+# python3 generateProperties.py -ic 10 -o props/mnist/mnist-net_256x6.onnx -s props/mnist/mnist_instances.csv -d MNIST -ec 10 -se 0.0 -ee 0.05
 
 # run neuralsat on all instances
 
 input_file="props/mnist/mnist_instances.csv"
 
 output_file="logs/ns/ns_mnist_256x6_output.txt"
-> "$output_file"
+# > "$output_file"
 
 while IFS=',' read -r col1 col2 col3 _ || [ -n "$col1" ]; do
     network="$col1"

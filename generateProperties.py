@@ -74,7 +74,7 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     trns_norm = trans.ToTensor()
 
     data = None
-    if dataset == 'MNIST' or dataset == 'ERAN':
+    if dataset == 'MNIST_2' or dataset == 'MNIST_x' or dataset == 'ERAN':
         data = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=trns_norm)
     elif dataset == 'CIFAR':
         data = torchvision.datasets.CIFAR10(data_dir, train=False, download=True, transform=trns_norm)
@@ -94,7 +94,7 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     while num_selected < iCount:
         i += 1
         input_name = sess.get_inputs()[0].name
-        if dataset == 'MNIST':
+        if dataset == 'MNIST_2' or dataset == 'MNIST_6':
             result = np.argmax(sess.run(None, {input_name: images[i].numpy().reshape(1, 784, 1)})[0])
         elif dataset == 'CIFAR':
             result = np.argmax(sess.run(None, {input_name: images[i].unsqueeze(0).numpy()})[0])
