@@ -5,7 +5,7 @@ general:
   graph_optimizer: Customized("custom_graph_optimizer", "merge_sign")
   no_batchdim_buffers: True
 data:
-  start: 19
+  start: 0
 model:
   onnx_loader: Customized("custom_model_loader", "customized_Gtrsb_loader")
   onnx_optimization_flags: fix_gtrsb

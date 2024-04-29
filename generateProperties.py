@@ -74,7 +74,7 @@ def loadData(iCount, onnxFile, dataset, data_dir: str = "./tmp"):
     trns_norm = trans.ToTensor()
 
     data = None
-    if dataset == 'MNIST_2' or dataset == 'MNIST_x' or dataset == 'ERAN':
+    if dataset == 'MNIST_2' or dataset == 'MNIST_6' or dataset == 'ERAN':
         data = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=trns_norm)
     elif dataset == 'CIFAR':
         data = torchvision.datasets.CIFAR10(data_dir, train=False, download=True, transform=trns_norm)
@@ -207,5 +207,5 @@ if __name__ == '__main__':
                 inputBounds = perturbInstance(image, eps, imgMean, imgStd)
 
             saveVnnlib(inputBounds, label, specPath, 43 if dataset == 'GTSRB' else 10)
-    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile)
+    createInstanceCSV(instanceCount, epss, onnxFile[onnxFile.rfind('/')+1:], specFile, 120)
 

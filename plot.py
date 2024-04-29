@@ -4,10 +4,11 @@ import numpy as np
 import os
 
 NUM_INSTANCES = 10
-BENCHMARK = "GTSRB"
+BENCHMARK = "MNIST 6"
 
 # Plot the number of verified/unverified and time for verification at each epsilon value
-def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier):
+def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier,
+                    epsCount, startEps, endEps):
     fig, ax = plt.subplots(figsize=(10,5))
     axx = ax.twinx()
     ax.plot(epss, num_verified, label='Verified')
@@ -15,14 +16,13 @@ def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifi
     axx.plot(epss, verifiedTime, label='Time', color='k')
 
     ax.set_xlabel('$\epsilon$')
-    ax.set_xlabel('$\epsilon$')
     ax.set_ylabel('Number of Instances (per $\epsilon$)')
     axx.set_ylabel('Time (s)')
 
     ax.legend()
     axx.legend()
     plt.title(f'Sweeping $\epsilon$ for {BENCHMARK.capitalize()} (MNIST)')
-    plt.xticks(np.arange(0, 0.025, .002))
+    plt.xticks(np.linspace(startEps, endEps, epsCount))
     plt.savefig(f'results/sweeping_eps_{BENCHMARK}_{NUM_INSTANCES}_{verifier}.png')
     # plt.show()
 
@@ -99,7 +99,15 @@ if __name__=='__main__':
     ap.add_argument("-l", "--log", type=str, help="Path to log file to parse")
     ap.add_argument('-i', "--instances", type=str, help="Path to instances csv")
     ap.add_argument('-v', "--verifier", type=str, help="'abc' or 'ns'")
+    ap.add_argument("-ec", "--epsilonCount", type=int, default=10, help="Number of epsilon to sweep over")
+    ap.add_argument("-se", "--startEpsilon", type=float, default=0.0, help="Starting epsilon")
+    ap.add_argument("-ee", "--endEpsilon", type=float, default=0.04, help="Ending epsilon")
+    ap.add_argument("-ic", "--instanceCount", type=int, default=50, help="Number of instances to generate properties for")
+    ap.add_argument("-d", "--dataset", type=str, required=True, help="Dataset to use to generate properties")
     args = ap.parse_args()
+
+    NUM_INSTANCES = args.instanceCount
+    BENCHMARK = args.dataset
 
     if args.verifier == 'ns':
         epss, num_verified, num_unverified, avg_time = parseNeuralSATlog(args.log)
@@ -110,4 +118,4 @@ if __name__=='__main__':
         epss = [float((e.split('_')[2])[:-7]) for i, e in enumerate(insts) if i % NUM_INSTANCES ==0]
         num_verified, num_unverified, times = parseABcrownLog(args.log)
         
-        plotSweepingEPS(epss, num_verified, num_unverified, times, args.verifier)
+        plotSweepingEPS(epss, num_verified, num_unverified, times, args.verifier, args.epsilonCount, args.startEpsilon, args.endEpsilon)
