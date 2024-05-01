@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import argparse
 import numpy as np
 import os
+import matplotlib.image as mpimg
 
-NUM_INSTANCES = 10
-BENCHMARK = "MNIST 6"
+NUM_INSTANCES = 50
+BENCHMARK = "MNIST"
 
 # Plot the number of verified/unverified and time for verification at each epsilon value
 def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifiedTime: list, verifier,
@@ -21,8 +22,9 @@ def plotSweepingEPS(epss: list, num_verified: list, num_unverified: list, verifi
 
     ax.legend()
     axx.legend()
-    plt.title(f'Sweeping $\epsilon$ for {BENCHMARK.capitalize()} (MNIST)')
-    plt.xticks(np.linspace(startEps, endEps, epsCount))
+    verifierTitle = "$\\alpha$-$\\beta$-CROWN" if verifier=="abc" else "NeuralSat"
+    plt.title(f'Sweeping $\epsilon$ for {BENCHMARK.upper()} using {verifierTitle}')
+    plt.xticks(np.linspace(startEps, endEps, int(epsCount/1.5)))
     plt.savefig(f'results/sweeping_eps_{BENCHMARK}_{NUM_INSTANCES}_{verifier}.png')
     # plt.show()
 
@@ -93,7 +95,6 @@ def parseNeuralSATlog(file):
     return epss, num_verified, num_unverified, avg_time       
 
 
-
 if __name__=='__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-l", "--log", type=str, help="Path to log file to parse")
@@ -111,7 +112,7 @@ if __name__=='__main__':
 
     if args.verifier == 'ns':
         epss, num_verified, num_unverified, avg_time = parseNeuralSATlog(args.log)
-        plotSweepingEPS(epss, num_verified, num_unverified, avg_time, args.verifier)
+        plotSweepingEPS(epss, num_verified, num_unverified, avg_time, args.verifier, args.epsilonCount, args.startEpsilon, args.endEpsilon)
 
     if args.verifier == 'abc':
         insts = parseInstanceCsv(args.instances)

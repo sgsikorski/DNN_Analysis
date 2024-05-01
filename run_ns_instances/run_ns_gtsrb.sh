@@ -1,4 +1,4 @@
-# this script runs NeuralSAT on the MNIST dataset on 256x6 network and saves the results to ns_mnist_256x6_output.txt
+# this script runs NeuralSAT on the GTSRB dataset on their (30x30) network and saves the results to ns_gtsrb_output.txt
 
 # NOTE: BEFORE running: run 'module load gurobi-11.0.0'
 # NOTE: BEFORE running: run 'conda activate neuralsat'

@@ -1,6 +1,6 @@
 general:
-  root_path: ../../props/mnist
-  csv_name: mnist_6_instances.csv
+  root_path: ../../props/mnist_6
+  csv_name: mnist_instances.csv
 data:
   start: 0
 solver:
